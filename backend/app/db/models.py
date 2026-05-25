@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 class AgentCreate(BaseModel):
     name: str
@@ -17,3 +17,10 @@ class CommitCreate(BaseModel):
 
 class WatchdogScan(BaseModel):
     commit_hash: str
+
+class CLICommand(BaseModel):
+    id: Optional[int] = None
+    command: str
+    args: Optional[List[str]] = None
+    output: str
+    timestamp: str

@@ -1,99 +1,131 @@
-#Custom Modules
-from src.chatbot.chatbot import Chatbot
-from src.utils.nodes import NodeTree
-from src.utils.memory import Memory
+# CLI integration with backend API and local Ollama chatbot
+# Provides commands to run backend actions and an interactive chat mode.
 
+import os
+import sys
 import click
-import questionary
-import asyncio
+import requests
+from typing import List
 
-class Main:
+# LangChain Ollama integration
+from langchain_ollama import OllamaLLM
 
-    def __init__(self):
-        self.keywords = ["r","-goto","-commit","-history","-branch","-checkout","-exit"]
-        self.nodeTree = NodeTree()
-        self.chatMemory = Memory()
-        self.chatbot = Chatbot()
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
-        self.chatMemory.history = self.nodeTree.cur_history
-        print(self.chatMemory.history)
-    def pre_loop(self):
-        #LLM Selection
+# Initialize Ollama LLM (default model can be overridden via env)
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")
+llm = OllamaLLM(model=OLLAMA_MODEL)
 
-        llm_model = questionary.select("Select model",
-                                         choices=["qwen2.5:3b","gpt-oss:20b"]).ask()
-        
-        click.echo(f"You chose {llm_model}")
+@click.group()
+def cli():
+    """CognitionVCS CLI - interact with backend via HTTP and chat locally."""
+    pass
 
-        self.chatbot.set_llm(llm_model)
-        self.mainloop()
-    
-    def mainloop(self):
-        #mainloop
-        while True:
-            q = click.prompt(f"({self.nodeTree.cur_branch}) User : ")
-            if q not in self.keywords:
-                self.chatMemory.history.append({"role":"user","content":q})
-                res = self.chatbot.ask(self.chatMemory.history)
-                if(res):
+@cli.command()
+@click.argument('command')
+@click.argument('args', nargs=-1)
+def run(command: str, args: List[str]):
+    """Execute a command on the backend.
+    Example: cvc run "commit" "-m" "Initial commit"
+    """
+    payload = {"command": command, "args": list(args)}
+    try:
+        resp = requests.post(f"{API_URL}/cli/execute", json=payload)
+        resp.raise_for_status()
+        data = resp.json()
+        click.echo(data.get('output', 'No output'))
+    except Exception as e:
+        click.echo(f"Error executing command: {e}", err=True)
 
-                    self.chatMemory.history.append({"role":"ai","content":res})
+@cli.command()
+def history():
+    """Fetch recent command history from backend"""
+    try:
+        resp = requests.get(f"{API_URL}/cli/history")
+        resp.raise_for_status()
+        history = resp.json()
+        for item in history:
+            ts = item.get('timestamp')
+            cmd = item.get('command')
+            args = item.get('args') or []
+            out = item.get('output')
+            click.echo(f"[{ts}] {cmd} {' '.join(args)}\n  → {out}\n")
+    except Exception as e:
+        click.echo(f"Error fetching history: {e}", err=True)
 
-                    click.echo("AI : " + res)
-
-                else:
-                    click.echo("Error occurred")
-            else:
-                if q.lower() == self.keywords[0]:
-                    self.clear_history()
-                if q.lower() == self.keywords[1]:
-                    self.goto_commit()
-                elif q.lower() == self.keywords[2]:
-                    self.commit_context()
-                elif q.lower() == self.keywords[3]:
-                    self.nodeTree.get_history()
-                elif q.lower() == self.keywords[4]:
-                    self.create_branch()
-                elif q.lower() == self.keywords[5]:
-                    self.checkout()
-                elif q.lower() == self.keywords[-1]:
-                    break
-        click.echo("bye bye")
-                
-
-    def commit_context(self):
-        msg = click.prompt("commit message : ")
-        if (self.nodeTree.commit(self.chatMemory.history,msg)):
-            click.echo(click.style("commit successful",fg="green"))
-    
-    def create_branch(self):
-        branch_name = click.prompt("Branch Name : ")
-        if(self.nodeTree.create_branch(branch_name)):
-            click.echo(click.style("New branch created",fg="green"))
-
-    def checkout(self):
-        branch_name = click.prompt("Branch name : ")
-        self.nodeTree.checkout(branch_name)
-    
-    def clear_history(self):
-        self.nodeTree.clear_history()
-        self.chatMemory.history = self.nodeTree.cur_history
-
-    def goto_commit(self):
-        commit_option = []
-        for hash,node in self.nodeTree.nodes.items():
-            if node.branch == self.nodeTree.cur_branch:
-                commit_option.append(node.commit_msg + " " + hash)
-
-        commit = questionary.select("Select model",
-                                         choices=commit_option).ask()
-        commit_hash = commit.split()[1]
-        print(commit_hash)
-        self.nodeTree.go_to(commit_hash)
-        self.chatMemory.history = self.nodeTree.cur_history
-        print(self.chatMemory.history)
+@cli.command()
+def chat():
+    """Start an interactive chat with the local Ollama LLM.
+    You can also issue special commands prefixed with '/' to interact with the backend.
+    Supported slash commands:
+      /run <cmd> [args...]   → execute a backend command
+      /history                → show command history
+      /exit                   → quit chat
+    Any other input is sent to the LLM for a natural‑language response.
+    """
+    click.echo("Starting CognitionVCS chat (type /help for commands)...")
+    while True:
+        try:
+            user_input = click.prompt('You')
+        except (KeyboardInterrupt, EOFError):
+            click.echo('\nExiting chat.')
+            break
+        if not user_input:
+            continue
+        if user_input.startswith('/'):
+            parts = user_input[1:].split()
+            if not parts:
+                continue
+            cmd = parts[0]
+            if cmd == 'help':
+                click.echo('Available slash commands: /run, /history, /exit')
+                continue
+            if cmd == 'exit':
+                click.echo('Goodbye!')
+                break
+            if cmd == 'run':
+                if len(parts) < 2:
+                    click.echo('Usage: /run <command> [args...]')
+                    continue
+                backend_cmd = parts[1]
+                backend_args = parts[2:]
+                # reuse the run logic
+                payload = {"command": backend_cmd, "args": backend_args}
+                try:
+                    resp = requests.post(f"{API_URL}/cli/execute", json=payload)
+                    resp.raise_for_status()
+                    data = resp.json()
+                    click.echo(data.get('output', 'No output'))
+                except Exception as e:
+                    click.echo(f"Error executing backend command: {e}", err=True)
+                continue
+            if cmd == 'history':
+                # reuse history logic
+                try:
+                    resp = requests.get(f"{API_URL}/cli/history")
+                    resp.raise_for_status()
+                    history = resp.json()
+                    for item in history:
+                        ts = item.get('timestamp')
+                        c = item.get('command')
+                        args = item.get('args') or []
+                        out = item.get('output')
+                        click.echo(f"[{ts}] {c} {' '.join(args)}\n  → {out}\n")
+                except Exception as e:
+                    click.echo(f"Error fetching history: {e}", err=True)
+                continue
+            click.echo(f"Unknown slash command: {cmd}")
+            continue
+        # Normal message -> send to Ollama LLM
+        try:
+            response = llm.invoke(user_input)
+            click.echo(f"Bot: {response}")
+        except Exception as e:
+            click.echo(f"Error communicating with Ollama: {e}", err=True)
 
 if __name__ == "__main__":
-    main = Main()
-    main.pre_loop() #runs before main loop
-    
+    # If no arguments, show help
+    if len(sys.argv) == 1:
+        cli(['--help'])
+    else:
+        cli()

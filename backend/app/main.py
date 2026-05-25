@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import commits, branches, scan, metrics, agents, settings
+from app.api import commits, branches, scan, metrics, agents, settings, cli
 import structlog
 import traceback
 
@@ -35,6 +35,7 @@ app.include_router(scan.router, prefix="/scan", tags=["scan"])
 app.include_router(metrics.router, prefix="/metrics", tags=["metrics"])
 app.include_router(agents.router, prefix="/agents", tags=["agents"])
 app.include_router(settings.router, prefix="/settings", tags=["settings"])
+app.include_router(cli.router, prefix="/cli", tags=["cli"])
 
 # Instrument FastAPI with OpenTelemetry (Fix Issue 6)
 FastAPIInstrumentor.instrument_app(app)

@@ -11,6 +11,7 @@ import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import NewRepo from './pages/NewRepo';
+import CLI from './pages/CLI';
 
 import Notifications from './pages/Notifications';
 import Watchdog from './pages/Watchdog';
@@ -36,6 +37,7 @@ function App() {
           <Route path="/repo/:id" element={<RepoDashboard />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/cli" element={<CLI />} />
           <Route path="/settings" element={<Settings />} />
 
           {/* Newly Added Missing Routes */}
