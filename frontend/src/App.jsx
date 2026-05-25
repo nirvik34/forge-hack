@@ -31,8 +31,9 @@ function App() {
 
           {/* Core App Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/new" element={<NewRepo />} />
+          <Route path="/repo" element={<RepoDashboard />} />
           <Route path="/repo/:id" element={<RepoDashboard />} />
-          <Route path="/repo/new" element={<NewRepo />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/settings" element={<Settings />} />
