@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+langchain
+langchain-google-genai
+supabase
+pydantic
+python-dotenv
+pytest
+structlog
+tenacity
+boto3
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+python-jose[cryptography]

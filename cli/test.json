@@ -1,0 +1,5 @@
+{
+    "prompt": "Analyze the EV market.",
+    "tool": "TavilySearch(query='EV market trends 2026')",
+    "output": "The EV market in 2026 is projected to see a 30% increase in solid-state battery adoption."
+}

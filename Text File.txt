@@ -1,0 +1,984 @@
+watch dog settings page
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure Watchdog Rules | CognitionVCS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chosen Palette: GitHub Light Theme (White, Slate, Neutral borders, Blue/Green accents) -->
+    <!-- Application Structure Plan: Master-detail split layout mimicking GitHub's Repository Settings. Borders have been fixed using 'divide-y' and CSS toggles replaced with Tailwind peer utility classes for flawless rendering. -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #ffffff; 
+            color: #1F2328;
+        }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* GitHub-style aesthetics */
+        .gh-border { border: 1px solid #d0d7de; }
+        .gh-bg-gray { background-color: #f6f8fa; }
+        
+        .gh-input {
+            background-color: #f6f8fa;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 14px;
+            color: #24292f;
+            transition: 80ms cubic-bezier(0.33, 1, 0.68, 1);
+        }
+        .gh-input:focus {
+            background-color: #ffffff;
+            border-color: #0969da;
+            outline: none;
+            box-shadow: inset 0 0 0 1px #0969da;
+        }
+
+        .gh-btn {
+            background-color: #f6f8fa;
+            border: 1px solid #d0d7de;
+            color: #24292f;
+            box-shadow: 0 1px 0 rgba(27,31,36,0.04), inset 0 1px 0 rgba(255,255,255,0.25);
+            transition: 0.2s;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .gh-btn:hover { background-color: #f3f4f6; }
+        .gh-btn-primary {
+            background-color: #1f883d;
+            border: 1px solid rgba(27,31,36,0.15);
+            color: #ffffff;
+            box-shadow: 0 1px 0 rgba(27,31,36,0.1), inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: 0.2s;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .gh-btn-primary:hover { background-color: #1a7f37; }
+
+        /* Sidebar active state */
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: #24292f;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .sidebar-item:hover { background-color: #f3f4f6; }
+        .sidebar-item.active {
+            font-weight: 600;
+            background-color: #f6f8fa;
+            border-left: 3px solid #fd8c73;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d0d7de; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8c959f; }
+    </style>
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+    <!-- Global Nav -->
+    <nav class="bg-[#24292f] text-white py-3 px-4 flex items-center justify-between text-sm sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center gap-4">
+            <div class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center cursor-pointer hover:bg-white/20 transition">
+                <i data-lucide="git-merge" class="w-5 h-5 text-white"></i>
+            </div>
+            <div class="flex gap-4 font-semibold">
+                <a href="#" class="text-gray-300 hover:text-white transition">Dashboard</a>
+                <a href="#" class="text-gray-300 hover:text-white transition">Agents</a>
+                <a href="#" class="text-white border-b-2 border-white pb-1">Watchdog</a>
+                <a href="#" class="text-gray-300 hover:text-white transition">Analytics</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="relative group cursor-pointer">
+                <img src="https://ui-avatars.com/api/?name=Nirvik+Dev&background=0D8ABC&color=fff&size=40" alt="Profile" class="w-7 h-7 rounded-full border border-white/20 ring-2 ring-white/10">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Custom Toast Alert (GitHub Style) -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-green-50 text-green-800 border border-green-200 px-4 py-3 rounded-md shadow-lg flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50 text-sm font-medium">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+        <span id="toast-message">Watchdog rules successfully updated.</span>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow w-full max-w-[1024px] mx-auto px-4 md:px-8 py-8">
+        
+        <!-- Breadcrumbs & Header -->
+        <div class="mb-6">
+            <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                <a href="#" class="hover:text-[#0969da] hover:underline">Watchdog Sentinels</a>
+                <span>/</span>
+                <span class="text-gray-900 font-semibold">Configure Rules</span>
+            </div>
+            <div class="flex justify-between items-end pb-4 border-b gh-border">
+                <div>
+                    <h1 class="text-2xl font-normal text-gray-900">Global Watchdog Policies</h1>
+                    <p class="text-sm text-gray-500 mt-1">Configure how the Overseer LLM evaluates commits across all your agent repositories.</p>
+                </div>
+                <button onclick="saveRules()" class="gh-btn-primary px-4 py-1.5 flex items-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4"></i> Save Rules
+                </button>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-8">
+            
+            <!-- Left Sidebar Navigation -->
+            <aside class="w-full md:w-1/4 flex flex-col gap-1">
+                <nav class="flex flex-col space-y-1">
+                    <div class="sidebar-item active gap-2" id="nav-general" onclick="switchTab('general')">
+                        <i data-lucide="sliders" class="w-4 h-4 text-gray-500"></i> General Settings
+                    </div>
+                    <div class="sidebar-item gap-2" id="nav-threats" onclick="switchTab('threats')">
+                        <i data-lucide="shield-alert" class="w-4 h-4 text-gray-500"></i> Threat Models
+                    </div>
+                    <div class="sidebar-item gap-2" id="nav-actions" onclick="switchTab('actions')">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4 text-gray-500"></i> Automated Actions
+                    </div>
+                    <div class="sidebar-item gap-2" id="nav-context" onclick="switchTab('context')">
+                        <i data-lucide="pin" class="w-4 h-4 text-gray-500"></i> Golden Contexts
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Right Content Area -->
+            <section class="w-full md:w-3/4 pb-12">
+                
+                <!-- TAB 1: Threat Models (Core feature of HalMit) -->
+                <div id="tab-threats" class="tab-content hidden">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">HalMit Threat Detection Vectors</h2>
+                    
+                    <!-- FIX: Used divide-y to prevent double borders between items -->
+                    <div class="border gh-border rounded-md overflow-hidden divide-y divide-[#d0d7de] bg-white">
+                        
+                        <!-- Rule 1 -->
+                        <div class="p-4 flex gap-4 hover:bg-gray-50/50 transition">
+                            <div class="mt-0.5 flex-shrink-0">
+                                <!-- FIX: Pure Tailwind Toggle Switch -->
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                  <input type="checkbox" class="sr-only peer" checked>
+                                  <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1f883d]"></div>
+                                </label>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900">Synthetic Library/API Detection</h3>
+                                <p class="text-xs text-gray-500 mt-1 mb-2">Blocks the agent if it attempts to import, call, or utilize tool functions and code libraries that do not exist (a common generative hallucination).</p>
+                                <div class="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-800 flex items-start gap-2">
+                                    <i data-lucide="info" class="w-4 h-4 flex-shrink-0 mt-0.5 text-blue-600"></i>
+                                    Requires the Overseer LLM to cross-reference PyPI, npm, and provided tool definitions.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rule 2 -->
+                        <div class="p-4 flex gap-4 hover:bg-gray-50/50 transition">
+                            <div class="mt-0.5 flex-shrink-0">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                  <input type="checkbox" class="sr-only peer" checked>
+                                  <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1f883d]"></div>
+                                </label>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900">Prompt Injection Mitigation</h3>
+                                <p class="text-xs text-gray-500 mt-1">Scans incoming web-scraped data and external API returns for malicious framing attempts (e.g., "Ignore previous instructions").</p>
+                            </div>
+                        </div>
+
+                        <!-- Rule 3: Semantic Drift Slider -->
+                        <div class="p-4 flex gap-4 hover:bg-gray-50/50 transition bg-slate-50/30">
+                            <div class="mt-0.5 flex-shrink-0">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                  <input type="checkbox" class="sr-only peer" checked>
+                                  <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1f883d]"></div>
+                                </label>
+                            </div>
+                            <div class="w-full">
+                                <h3 class="text-sm font-semibold text-gray-900 flex justify-between">
+                                    Semantic Drift Boundary
+                                    <span class="text-[#0969da] font-mono bg-blue-50 px-1.5 rounded" id="drift-value">15%</span>
+                                </h3>
+                                <p class="text-xs text-gray-500 mt-1 mb-3">Establishes the mathematical "Generalization Boundary". If the agent's current commit deviates from the original system prompt intent by this percentage, it is flagged.</p>
+                                
+                                <input type="range" min="1" max="50" value="15" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1f883d]" oninput="document.getElementById('drift-value').innerText = this.value + '%'">
+                                <div class="flex justify-between text-[10px] text-gray-400 mt-1.5 font-mono">
+                                    <span>Strict (1%)</span>
+                                    <span>Loose (50%)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rule 4 -->
+                        <div class="p-4 flex gap-4 hover:bg-gray-50/50 transition">
+                            <div class="mt-0.5 flex-shrink-0">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                  <input type="checkbox" class="sr-only peer">
+                                  <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1f883d]"></div>
+                                </label>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900">Infinite Loop Circuit Breaker</h3>
+                                <p class="text-xs text-gray-500 mt-1">Detects cyclical reasoning paths where an agent repeats the same Observation-Thought-Action sequence across multiple commits.</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- TAB 2: Automated Actions -->
+                <div id="tab-actions" class="tab-content hidden">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Automated Actions & Mitigation</h2>
+                    
+                    <div class="mb-6">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-2">Default Violation Action</h3>
+                        <p class="text-xs text-gray-600 mb-3">When the Overseer LLM detects a critical hallucination or boundary violation, what should CognitionVCS do?</p>
+                        
+                        <!-- FIX: Clickable Cards instead of floating radio buttons -->
+                        <div class="border gh-border rounded-md overflow-hidden divide-y divide-[#d0d7de]">
+                            
+                            <label class="flex items-start gap-3 p-4 cursor-pointer hover:bg-gray-50 transition bg-white">
+                                <input type="radio" name="default_action" class="mt-1 w-4 h-4 accent-[#1f883d]" checked>
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-900">Strict: Hard Rollback (Recommended)</div>
+                                    <div class="text-xs text-gray-500 mt-0.5 leading-relaxed">Instantly reject the commit and execute <code class="font-mono bg-gray-100 border gh-border px-1 rounded text-red-600">cvc reset --hard HEAD~1</code>. The agent is forced to retry from the last verified safe state.</div>
+                                </div>
+                            </label>
+                            
+                            <label class="flex items-start gap-3 p-4 cursor-pointer hover:bg-gray-50 transition bg-white">
+                                <input type="radio" name="default_action" class="mt-1 w-4 h-4 accent-[#1f883d]">
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-900">Quarantine: Branch and Isolate</div>
+                                    <div class="text-xs text-gray-500 mt-0.5 leading-relaxed">Move the corrupted state to an isolated <code class="font-mono bg-gray-100 border gh-border px-1 rounded text-purple-600">quarantine</code> branch for human review. Agent continues on main branch from HEAD~1.</div>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-3 p-4 cursor-pointer hover:bg-gray-50 transition bg-white">
+                                <input type="radio" name="default_action" class="mt-1 w-4 h-4 accent-[#1f883d]">
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-900">Lenient: Warn and Continue</div>
+                                    <div class="text-xs text-gray-500 mt-0.5 leading-relaxed">Allow the commit to merge into the main reasoning branch, but log a critical warning to the Watchdog dashboard. High risk of context pollution.</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="border gh-border rounded-md p-4 bg-gray-50 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-900">Slack Notification Webhook</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Alert human operators when a mitigation action is taken.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer" checked>
+                            <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1f883d]"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- TAB 3: Golden Contexts -->
+                <div id="tab-context" class="tab-content hidden">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Pinned Golden Contexts</h2>
+                    <p class="text-sm text-gray-600 mb-4">Define explicit, unbreakable constraints that the Watchdog must evaluate against for *every* commit. These rules survive history rewrites and context truncation algorithms.</p>
+                    
+                    <!-- FIX: Removed internal outline border from textarea, unified header -->
+                    <div class="border gh-border rounded-md overflow-hidden mb-4 shadow-sm">
+                        <div class="bg-gray-50 border-b gh-border px-4 py-2 flex justify-between items-center">
+                            <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Custom Rule JSON Array</span>
+                        </div>
+                        <textarea rows="8" class="w-full p-4 text-sm font-mono bg-[#0d1117] text-[#c9d1d9] focus:outline-none focus:ring-0 resize-y border-none block" placeholder="// Add your custom JSON or natural language constraints here
+{
+  'forbidden_tool_args': ['rm -rf', 'drop table'],
+  'required_output_format': 'json',
+  'mandatory_compliance': 'Never generate personally identifiable information (PII) in observation logs.'
+}"></textarea>
+                    </div>
+                    <button class="gh-btn px-3 py-1.5 flex items-center gap-2 text-sm"><i data-lucide="plus" class="w-4 h-4"></i> Add another rule block</button>
+                </div>
+
+                <!-- TAB 4: General Settings (Active on Load) -->
+                <div id="tab-general" class="tab-content block">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">General Watchdog Settings</h2>
+                    
+                    <div class="border gh-border rounded-md bg-white">
+                        <div class="p-5 border-b gh-border flex justify-between items-start hover:bg-gray-50 transition">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900">Master Watchdog Switch</h3>
+                                <p class="text-xs text-gray-500 mt-1">Enable or disable the Overseer LLM entirely. Disabling will allow raw, unchecked commits to merge instantly (faster, but dangerous).</p>
+                            </div>
+                            <div class="mt-1 flex-shrink-0">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                  <input type="checkbox" class="sr-only peer" checked>
+                                  <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1f883d]"></div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="p-5">
+                            <h3 class="text-sm font-semibold text-gray-900 mb-2">Overseer Engine Selection</h3>
+                            <p class="text-xs text-gray-500 mb-3">Select which connected API should act as the judge for incoming commits. <span class="font-semibold text-gray-800">Gemini 2.5 Flash</span> is recommended for low-latency scanning.</p>
+                            <select class="gh-input w-full md:w-1/2 cursor-pointer bg-white">
+                                <option selected>Google Gemini 2.5 Flash (Recommended)</option>
+                                <option>Google Gemini 2.5 Pro</option>
+                                <option>OpenAI GPT-4o</option>
+                                <option>Local Model (Ollama)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // Init Lucide
+        lucide.createIcons();
+
+        // Standard Tab Routing Logic
+        function switchTab(tabId) {
+            // Hide all
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('block');
+            });
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            
+            // Show target
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.add('block');
+            document.getElementById(`nav-${tabId}`).classList.add('active');
+        }
+
+        // Custom non-blocking Toast feedback
+        function saveRules() {
+            const btn = event.currentTarget;
+            const origHTML = btn.innerHTML;
+            
+            // UI Loading Simulation
+            btn.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Saving...`;
+            
+            setTimeout(() => {
+                btn.innerHTML = origHTML;
+                
+                // Show Toast
+                const toast = document.getElementById('toast');
+                toast.className = "fixed bottom-5 right-5 bg-green-50 text-green-800 border border-green-200 px-4 py-3 rounded-md shadow-lg flex items-center gap-2 transform translate-y-0 opacity-100 transition-all duration-300 z-50 text-sm font-medium";
+                
+                setTimeout(() => {
+                    toast.className = "fixed bottom-5 right-5 bg-green-50 text-green-800 border border-green-200 px-4 py-3 rounded-md shadow-lg flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50 text-sm font-medium";
+                }, 3000);
+            }, 600);
+        }
+    </script>
+</body>
+</html>
+
+
+notfication page html ui
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbox | CognitionVCS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chosen Palette: GitHub Light Theme (White, Slate, Neutral borders, Blue/Red/Purple accents for notifications) -->
+    <!-- Application Structure Plan: Master-detail split layout mimicking GitHub's Notifications Inbox. Includes a new real-time text filter search bar. -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f6f8fa; /* Standard GitHub background for inbox */
+            color: #1F2328;
+        }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* GitHub-style aesthetics */
+        .gh-border { border: 1px solid #d0d7de; }
+        .gh-bg-gray { background-color: #f6f8fa; }
+        
+        .gh-btn {
+            background-color: #f6f8fa;
+            border: 1px solid #d0d7de;
+            color: #24292f;
+            box-shadow: 0 1px 0 rgba(27,31,36,0.04), inset 0 1px 0 rgba(255,255,255,0.25);
+            transition: 0.2s;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .gh-btn:hover { background-color: #f3f4f6; }
+        
+        .gh-btn-primary {
+            background-color: #1f883d;
+            border: 1px solid rgba(27,31,36,0.15);
+            color: #ffffff;
+            box-shadow: 0 1px 0 rgba(27,31,36,0.1), inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: 0.2s;
+            border-radius: 6px;
+        }
+        .gh-btn-primary:hover { background-color: #1a7f37; }
+
+        /* Sidebar Links */
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 12px;
+            font-size: 14px;
+            color: #24292f;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .sidebar-item:hover { background-color: #eaeef2; }
+        .sidebar-item.active {
+            font-weight: 600;
+            background-color: #eaeef2;
+        }
+
+        /* Notification Row Animation */
+        .notif-row {
+            transition: all 0.3s ease-out;
+            max-height: 150px;
+            overflow: hidden;
+            opacity: 1;
+        }
+        .notif-row.done {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            border-width: 0 !important;
+        }
+
+        .hover-icon-group .action-icon {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.15s ease-in-out;
+        }
+        .hover-icon-group:hover .action-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d0d7de; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8c959f; }
+    </style>
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+    <!-- Global Nav -->
+    <nav class="bg-[#24292f] text-white py-3 px-4 flex items-center justify-between text-sm sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center gap-4">
+            <div class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center cursor-pointer hover:bg-white/20 transition">
+                <i data-lucide="git-merge" class="w-5 h-5 text-white"></i>
+            </div>
+            <div class="flex gap-4 font-semibold">
+                <a href="#" class="text-gray-300 hover:text-white transition">Dashboard</a>
+                <a href="#" class="text-gray-300 hover:text-white transition">Agents</a>
+                <a href="#" class="text-gray-300 hover:text-white transition">Watchdog</a>
+                <a href="#" class="text-gray-300 hover:text-white transition">Analytics</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-2.5 top-1.5 w-4 h-4 text-gray-400"></i>
+                <input type="text" placeholder="Search cognition logs..." class="bg-[#24292f] border border-gray-600 rounded-md pl-8 pr-3 py-1 text-sm text-white placeholder-gray-400 focus:outline-none focus:bg-white focus:text-black w-60 transition-all">
+            </div>
+            
+            <!-- Active Notification Bell -->
+            <button class="relative text-white transition cursor-pointer" onclick="window.location.reload()">
+                <i data-lucide="bell" class="w-5 h-5"></i>
+                <span id="nav-badge" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-[#24292f]"></span>
+            </button>
+
+            <div class="relative group cursor-pointer">
+                <img src="https://ui-avatars.com/api/?name=Nirvik+Dev&background=0D8ABC&color=fff&size=40" alt="Profile" class="w-7 h-7 rounded-full border border-white/20 ring-2 ring-white/10">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Custom Toast Alert -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white border border-slate-700 px-4 py-3 rounded-md shadow-lg flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50 text-sm font-medium">
+        <i data-lucide="check" class="w-5 h-5 text-emerald-400"></i>
+        <span id="toast-message">Notification marked as done.</span>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow w-full max-w-[1200px] mx-auto px-4 md:px-8 py-8 flex flex-col md:flex-row gap-8">
+        
+        <!-- Left Sidebar Navigation -->
+        <aside class="w-full md:w-1/4 flex flex-col gap-6">
+            
+            <!-- Primary Filters -->
+            <nav class="flex flex-col space-y-1">
+                <div class="sidebar-item active group" onclick="switchTab('inbox', this)">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="inbox" class="w-4 h-4 text-gray-500 group-hover:text-[#0969da] transition-colors"></i> Inbox
+                    </div>
+                    <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold" id="inbox-count">4</span>
+                </div>
+                <div class="sidebar-item group" onclick="switchTab('saved', this)">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="bookmark" class="w-4 h-4 text-gray-500 group-hover:text-[#0969da] transition-colors"></i> Saved
+                    </div>
+                </div>
+                <div class="sidebar-item group" onclick="switchTab('done', this)">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-gray-500 group-hover:text-green-600 transition-colors"></i> Done
+                    </div>
+                </div>
+            </nav>
+
+            <hr class="gh-border">
+
+            <!-- Repository / Agent Filters -->
+            <div>
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-3">Filter by Agent</h3>
+                <nav class="flex flex-col space-y-1">
+                    <div class="sidebar-item group">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <span class="truncate w-40">financial-research</span>
+                        </div>
+                        <span class="text-xs text-gray-500">2</span>
+                    </div>
+                    <div class="sidebar-item group">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-purple-500"></div>
+                            <span class="truncate w-40">code-reviewer</span>
+                        </div>
+                        <span class="text-xs text-gray-500">1</span>
+                    </div>
+                    <div class="sidebar-item group">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="server" class="w-3 h-3 text-gray-500"></i>
+                            <span class="truncate w-40">System Alerts</span>
+                        </div>
+                        <span class="text-xs text-gray-500">1</span>
+                    </div>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Right Content Area -->
+        <section class="w-full md:w-3/4">
+            
+            <!-- GitHub Style Filter Bar -->
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                
+                <div class="flex items-center gap-3 w-full sm:w-2/3">
+                    <!-- Select All Checkbox -->
+                    <label class="flex items-center cursor-pointer text-gray-700 hover:text-black shrink-0 px-2">
+                        <input type="checkbox" class="rounded border-gray-300 w-4 h-4 accent-[#0969da]" id="select-all">
+                    </label>
+
+                    <!-- Real-time Text Filter Search -->
+                    <div class="relative w-full">
+                        <i data-lucide="filter" class="absolute left-2.5 top-2 w-4 h-4 text-gray-400"></i>
+                        <input type="text" id="notif-filter" onkeyup="filterNotifications()" placeholder="Filter notifications (e.g. 'Rollback', 'Semantic', or '#42')" class="w-full bg-white border border-[#d0d7de] rounded-md pl-8 pr-3 py-1.5 text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:border-[#0969da] focus:ring-1 focus:ring-[#0969da] transition-all shadow-sm">
+                    </div>
+                </div>
+
+                <div class="flex gap-2 shrink-0">
+                    <button class="gh-btn px-3 py-1.5 flex items-center gap-2 text-sm" onclick="markAllDone()">
+                        <i data-lucide="check" class="w-4 h-4 text-gray-500"></i> Mark all as done
+                    </button>
+                </div>
+            </div>
+
+            <!-- INBOX VIEW -->
+            <div id="view-inbox" class="flex flex-col gap-4">
+                
+                <!-- Group 1: financial-research -->
+                <div class="bg-white gh-border rounded-md shadow-sm overflow-hidden notif-group">
+                    <div class="bg-gray-50 border-b gh-border px-4 py-2.5 flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                            <i data-lucide="bot" class="w-4 h-4 text-gray-500"></i>
+                            <a href="#" class="hover:text-[#0969da] hover:underline">ai-org / financial-research</a>
+                        </div>
+                    </div>
+                    
+                    <div class="divide-y divide-[#d0d7de]">
+                        <!-- Notification Item 1: Watchdog Rollback -->
+                        <div class="notif-row flex p-3 hover:bg-gray-50 transition hover-icon-group bg-white relative">
+                            <!-- Unread Indicator -->
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-md"></div>
+                            
+                            <div class="pt-1 px-3">
+                                <input type="checkbox" class="rounded border-gray-300 w-4 h-4 accent-[#0969da]">
+                            </div>
+                            <div class="pt-1 pr-3">
+                                <i data-lucide="shield-alert" class="w-5 h-5 text-red-500"></i>
+                            </div>
+                            <div class="flex-grow flex flex-col justify-center">
+                                <div class="flex justify-between items-start">
+                                    <div class="text-sm">
+                                        <a href="#" class="font-semibold text-gray-900 hover:text-[#0969da]">Watchdog executed hard rollback: Semantic Drift exceeded 15%</a>
+                                    </div>
+                                    <span class="text-xs text-gray-500 whitespace-nowrap ml-2">2h ago</span>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                                    <span class="bg-red-50 text-red-700 border border-red-200 px-1.5 rounded font-mono text-[10px]">HEAD~1</span>
+                                    <span>Agent strayed from Golden Context rules. Mitigated successfully.</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 px-2 action-icon">
+                                <button onclick="markRowDone(this)" class="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition tooltip-trigger" title="Mark as done">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                </button>
+                                <button class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition tooltip-trigger" title="Save">
+                                    <i data-lucide="bookmark" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Notification Item 2: Successful Merge -->
+                        <div class="notif-row flex p-3 hover:bg-gray-50 transition hover-icon-group bg-white relative">
+                            <!-- Unread Indicator -->
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-md"></div>
+
+                            <div class="pt-1 px-3">
+                                <input type="checkbox" class="rounded border-gray-300 w-4 h-4 accent-[#0969da]">
+                            </div>
+                            <div class="pt-1 pr-3">
+                                <i data-lucide="git-merge" class="w-5 h-5 text-purple-500"></i>
+                            </div>
+                            <div class="flex-grow flex flex-col justify-center">
+                                <div class="flex justify-between items-start">
+                                    <div class="text-sm">
+                                        <a href="#" class="font-semibold text-gray-900 hover:text-[#0969da]">Automated merge of hypothesis branch</a>
+                                        <span class="text-gray-500 ml-1">#42</span>
+                                    </div>
+                                    <span class="text-xs text-gray-500 whitespace-nowrap ml-2">5h ago</span>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                                    <span class="font-mono text-[10px] bg-purple-50 text-purple-700 border border-purple-200 px-1.5 rounded">exp-q3-projections</span>
+                                    <span>merged 14 verified commits into main sequence.</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 px-2 action-icon">
+                                <button onclick="markRowDone(this)" class="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                </button>
+                                <button class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition">
+                                    <i data-lucide="bookmark" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 2: code-reviewer -->
+                <div class="bg-white gh-border rounded-md shadow-sm overflow-hidden notif-group">
+                    <div class="bg-gray-50 border-b gh-border px-4 py-2.5 flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                            <i data-lucide="bot" class="w-4 h-4 text-gray-500"></i>
+                            <a href="#" class="hover:text-[#0969da] hover:underline">ai-org / code-reviewer</a>
+                        </div>
+                    </div>
+                    
+                    <div class="divide-y divide-[#d0d7de]">
+                        <!-- Notification Item 3: Mention / Quarantine -->
+                        <div class="notif-row flex p-3 hover:bg-gray-50 transition hover-icon-group bg-white relative">
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-md"></div>
+                            <div class="pt-1 px-3">
+                                <input type="checkbox" class="rounded border-gray-300 w-4 h-4 accent-[#0969da]">
+                            </div>
+                            <div class="pt-1 pr-3">
+                                <i data-lucide="at-sign" class="w-5 h-5 text-gray-500"></i>
+                            </div>
+                            <div class="flex-grow flex flex-col justify-center">
+                                <div class="flex justify-between items-start">
+                                    <div class="text-sm">
+                                        <a href="#" class="font-semibold text-gray-900 hover:text-[#0969da]">Human review requested on Quarantined Branch</a>
+                                        <span class="text-gray-500 ml-1">#18</span>
+                                    </div>
+                                    <span class="text-xs text-gray-500 whitespace-nowrap ml-2">Yesterday</span>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <span class="font-semibold text-gray-700">@aryansoy</span> mentioned you: "Hey <span class="text-[#0969da]">@nirvik-dev</span>, check out this prompt injection vector the Watchdog caught. Safe to delete?"
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 px-2 action-icon">
+                                <button onclick="markRowDone(this)" class="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                </button>
+                                <button class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition">
+                                    <i data-lucide="bookmark" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 3: System -->
+                <div class="bg-white gh-border rounded-md shadow-sm overflow-hidden notif-group">
+                    <div class="bg-gray-50 border-b gh-border px-4 py-2.5 flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                            <i data-lucide="server" class="w-4 h-4 text-gray-500"></i>
+                            <span>CognitionVCS System</span>
+                        </div>
+                    </div>
+                    
+                    <div class="divide-y divide-[#d0d7de]">
+                        <!-- Notification Item 4: Token Warning -->
+                        <div class="notif-row flex p-3 hover:bg-gray-50 transition hover-icon-group bg-white relative">
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-md"></div>
+                            <div class="pt-1 px-3">
+                                <input type="checkbox" class="rounded border-gray-300 w-4 h-4 accent-[#0969da]">
+                            </div>
+                            <div class="pt-1 pr-3">
+                                <i data-lucide="zap" class="w-5 h-5 text-yellow-500"></i>
+                            </div>
+                            <div class="flex-grow flex flex-col justify-center">
+                                <div class="flex justify-between items-start">
+                                    <div class="text-sm">
+                                        <a href="#" class="font-semibold text-gray-900 hover:text-[#0969da]">Approaching API Token Limit</a>
+                                    </div>
+                                    <span class="text-xs text-gray-500 whitespace-nowrap ml-2">May 21</span>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    Your organization has consumed 80% (4M/5M) of its allocated Gemini 2.5 Flash tokens for Watchdog scans this billing cycle.
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 px-2 action-icon">
+                                <button onclick="markRowDone(this)" class="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                </button>
+                                <button class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition">
+                                    <i data-lucide="bookmark" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Empty State (Hidden initially, or shown when filter matches nothing) -->
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center border gh-border rounded-md border-dashed bg-gray-50 mt-4">
+                <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+                    <i data-lucide="check" class="w-8 h-8 text-gray-500" id="empty-state-icon"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-1" id="empty-state-title">All caught up!</h3>
+                <p class="text-sm text-gray-500" id="empty-state-desc">Your AI crew is sailing smoothly with no unread cognitive alerts.</p>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        // Init Lucide
+        lucide.createIcons();
+
+        let activeCount = 4;
+
+        // Routing Logic for Sidebar
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+
+            if (tabId !== 'inbox') {
+                document.getElementById('view-inbox').classList.add('hidden');
+                document.getElementById('empty-state').classList.remove('hidden');
+                
+                const emptyTitle = document.getElementById('empty-state-title');
+                const emptyDesc = document.getElementById('empty-state-desc');
+                const emptyIcon = document.getElementById('empty-state-icon');
+                
+                emptyTitle.innerText = tabId === 'saved' ? "No saved notifications" : "Nothing is done yet";
+                emptyDesc.innerText = tabId === 'saved' ? "You haven't bookmarked any alerts." : "Recently cleared notifications will appear here.";
+                emptyIcon.setAttribute('data-lucide', tabId === 'saved' ? 'bookmark' : 'check-circle');
+                lucide.createIcons();
+                
+            } else {
+                if (activeCount > 0) {
+                    document.getElementById('view-inbox').classList.remove('hidden');
+                    document.getElementById('empty-state').classList.add('hidden');
+                    // Reset filter on tab change
+                    document.getElementById('notif-filter').value = '';
+                    filterNotifications();
+                }
+            }
+        }
+
+        // Logic to Mark a single row as Done
+        function markRowDone(btnElement) {
+            const row = btnElement.closest('.notif-row');
+            row.classList.add('done');
+            
+            activeCount--;
+            updateCounts();
+            showToast();
+
+            setTimeout(() => {
+                const group = row.closest('.notif-group');
+                const remainingRows = group.querySelectorAll('.notif-row:not(.done)');
+                
+                // Only hide group if ALL remaining rows are truly done/hidden
+                let visibleRemaining = 0;
+                remainingRows.forEach(r => {
+                    if (r.style.display !== 'none') visibleRemaining++;
+                });
+
+                if (remainingRows.length === 0 || visibleRemaining === 0) {
+                    group.style.display = 'none'; 
+                }
+                
+                checkEmptyState();
+            }, 300);
+        }
+
+        // Logic to Mark ALL as Done
+        function markAllDone() {
+            if(activeCount === 0) return;
+            
+            const rows = document.querySelectorAll('.notif-row:not(.done)');
+            rows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    row.classList.add('done');
+                    activeCount--;
+                }
+            });
+            
+            updateCounts();
+            showToast("Visible notifications marked as done.");
+
+            setTimeout(() => {
+                const groups = document.querySelectorAll('.notif-group');
+                groups.forEach(group => {
+                    const remainingRows = group.querySelectorAll('.notif-row:not(.done)');
+                    if (remainingRows.length === 0) group.style.display = 'none';
+                });
+                checkEmptyState();
+            }, 300);
+        }
+
+        function updateCounts() {
+            const badge = document.getElementById('inbox-count');
+            const navBadge = document.getElementById('nav-badge');
+            
+            if (activeCount > 0) {
+                badge.innerText = activeCount;
+                navBadge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+                navBadge.style.display = 'none';
+            }
+        }
+
+        function checkEmptyState() {
+            if (activeCount === 0) {
+                document.getElementById('view-inbox').classList.add('hidden');
+                document.getElementById('empty-state').classList.remove('hidden');
+                
+                document.getElementById('empty-state-title').innerText = "All caught up!";
+                document.getElementById('empty-state-desc').innerText = "Your AI crew is sailing smoothly with no unread cognitive alerts.";
+                document.getElementById('empty-state-icon').setAttribute('data-lucide', 'check');
+                lucide.createIcons();
+            }
+        }
+
+        // Custom Toast feedback
+        function showToast(msg = "Notification marked as done.") {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = msg;
+            
+            toast.className = "fixed bottom-5 right-5 bg-slate-900 text-white border border-slate-700 px-4 py-3 rounded-md shadow-lg flex items-center gap-2 transform translate-y-0 opacity-100 transition-all duration-300 z-50 text-sm font-medium";
+            
+            setTimeout(() => {
+                toast.className = "fixed bottom-5 right-5 bg-slate-900 text-white border border-slate-700 px-4 py-3 rounded-md shadow-lg flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50 text-sm font-medium";
+            }, 3000);
+        }
+
+        // Real-time Text Filtering Logic
+        function filterNotifications() {
+            const input = document.getElementById('notif-filter');
+            const filterText = input.value.toLowerCase();
+            const groups = document.querySelectorAll('.notif-group');
+            let totalVisibleRows = 0;
+
+            groups.forEach(group => {
+                const rows = group.querySelectorAll('.notif-row:not(.done)');
+                let visibleRowsInGroup = 0;
+
+                rows.forEach(row => {
+                    const text = row.textContent || row.innerText;
+                    if (text.toLowerCase().indexOf(filterText) > -1) {
+                        row.style.display = ''; // Show
+                        visibleRowsInGroup++;
+                        totalVisibleRows++;
+                    } else {
+                        row.style.display = 'none'; // Hide
+                    }
+                });
+
+                // Hide the whole repository group if no rows match
+                if (visibleRowsInGroup === 0) {
+                    group.style.display = 'none';
+                } else {
+                    group.style.display = 'block';
+                }
+            });
+
+            // Show Empty State if search yields no results
+            const emptyState = document.getElementById('empty-state');
+            const viewInbox = document.getElementById('view-inbox');
+            
+            if (totalVisibleRows === 0 && activeCount > 0) {
+                viewInbox.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                document.getElementById('empty-state-title').innerText = "No results found";
+                document.getElementById('empty-state-desc').innerText = `We couldn't find any notifications matching '${input.value}'`;
+                document.getElementById('empty-state-icon').setAttribute('data-lucide', 'search');
+                lucide.createIcons();
+            } else if (activeCount > 0) {
+                viewInbox.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+            }
+        }
+
+        // Select All Checkbox logic
+        document.getElementById('select-all').addEventListener('change', function(e) {
+            const checkboxes = document.querySelectorAll('.notif-row:not(.done) input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                // Only check visible ones when filtering
+                if (cb.closest('.notif-row').style.display !== 'none') {
+                    cb.checked = e.target.checked;
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
+
+
+
+
+
+now for these two
+i want to make the ui and integrate it with backend too
+and for the notification page make the filter nd search options also work.
