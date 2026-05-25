@@ -33,26 +33,26 @@ export default function Watchdog() {
     // Fetch watchdog logs
     const { data: logsData, isLoading: logsLoading } = useQuery({
         queryKey: ['watchdog-logs'],
-        queryFn: () => fetch('http://localhost:8000/scan/logs').then(res => res.json()),
+        queryFn: () => fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/scan/logs`).then(res => res.json()),
         refetchInterval: 5000 // Poll logs every 5 seconds for real-time threat feed
     });
 
     // Fetch agents (to populate sidebar filter dynamically)
     const { data: agentsData } = useQuery({
         queryKey: ['agents'],
-        queryFn: () => fetch('http://localhost:8000/agents').then(res => res.json())
+        queryFn: () => fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/agents`).then(res => res.json())
     });
 
     // Fetch system metrics
     const { data: metricsData } = useQuery({
         queryKey: ['metrics'],
-        queryFn: () => fetch('http://localhost:8000/metrics').then(res => res.json())
+        queryFn: () => fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/metrics`).then(res => res.json())
     });
 
     // Fetch watchdog rules
     const { data: fetchedRulesData, refetch: refetchRules } = useQuery({
         queryKey: ['watchdog-rules'],
-        queryFn: () => fetch('http://localhost:8000/scan/rules').then(res => res.json()),
+        queryFn: () => fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/scan/rules`).then(res => res.json()),
         enabled: isRulesModalOpen // Only fetch when modal is open
     });
 
@@ -66,7 +66,7 @@ export default function Watchdog() {
     // Mutation to update rules
     const updateRulesMutation = useMutation({
         mutationFn: (rules) => {
-            return fetch('http://localhost:8000/scan/rules/update', {
+            return fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/scan/rules/update`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -87,7 +87,7 @@ export default function Watchdog() {
     // Mutation to clear logs
     const clearLogsMutation = useMutation({
         mutationFn: () => {
-            return fetch('http://localhost:8000/scan/clear', {
+            return fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/scan/clear`, {
                 method: 'POST'
             }).then(res => res.json());
         },
