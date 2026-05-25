@@ -63,19 +63,19 @@ class NodeTree:
         for node in self.nodes:
             print(self.nodes[node].commit_msg,end="===>>> ")
         print("END")
-
-    def get_latest_commit(self):
-        if self.head != None:
-            pass
-
+    
+    def clear_history(self):
+        self.cur_history = []
+        
     def go_to(self,hash_):
-        pass
+        self.cur_history = self.nodes[hash_].history
 
     def save(self):
         with open("data.dat","wb") as f:
             data = [self.nodes,self.branches]
             pickle.dump(data,f)
-
+        
+        self.load()
     def load(self):
         try:
             with open("data.dat","rb") as f:

@@ -10,13 +10,13 @@ import asyncio
 class Main:
 
     def __init__(self):
-        self.keywords = ["r","q","-commit","-history","-branch","-checkout","-exit"]
+        self.keywords = ["r","-goto","-commit","-history","-branch","-checkout","-exit"]
         self.nodeTree = NodeTree()
         self.chatMemory = Memory()
         self.chatbot = Chatbot()
 
         self.chatMemory.history = self.nodeTree.cur_history
-        
+        print(self.chatMemory.history)
     def pre_loop(self):
         #LLM Selection
 
@@ -26,15 +26,15 @@ class Main:
         click.echo(f"You chose {llm_model}")
 
         self.chatbot.set_llm(llm_model)
-        asyncio.run(self.mainloop())
+        self.mainloop()
     
-    async def mainloop(self):
+    def mainloop(self):
         #mainloop
         while True:
             q = click.prompt(f"({self.nodeTree.cur_branch}) User : ")
             if q not in self.keywords:
                 self.chatMemory.history.append({"role":"user","content":q})
-                res = await asyncio.to_thread(self.chatbot.ask,self.chatMemory.history)
+                res = self.chatbot.ask(self.chatMemory.history)
                 if(res):
 
                     self.chatMemory.history.append({"role":"ai","content":res})
@@ -45,7 +45,9 @@ class Main:
                     click.echo("Error occurred")
             else:
                 if q.lower() == self.keywords[0]:
-                    click.echo(self.content)
+                    self.clear_history()
+                if q.lower() == self.keywords[1]:
+                    self.goto_commit()
                 elif q.lower() == self.keywords[2]:
                     self.commit_context()
                 elif q.lower() == self.keywords[3]:
@@ -72,6 +74,24 @@ class Main:
     def checkout(self):
         branch_name = click.prompt("Branch name : ")
         self.nodeTree.checkout(branch_name)
+    
+    def clear_history(self):
+        self.nodeTree.clear_history()
+        self.chatMemory.history = self.nodeTree.cur_history
+
+    def goto_commit(self):
+        commit_option = []
+        for hash,node in self.nodeTree.nodes.items():
+            if node.branch == self.nodeTree.cur_branch:
+                commit_option.append(node.commit_msg + " " + hash)
+
+        commit = questionary.select("Select model",
+                                         choices=commit_option).ask()
+        commit_hash = commit.split()[1]
+        print(commit_hash)
+        self.nodeTree.go_to(commit_hash)
+        self.chatMemory.history = self.nodeTree.cur_history
+        print(self.chatMemory.history)
 
 if __name__ == "__main__":
     main = Main()
