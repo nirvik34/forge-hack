@@ -13,7 +13,7 @@ export default function NewRepo() {
 
     const mutation = useMutation({
         mutationFn: (newAgent) => {
-            return fetch('http://localhost:8000/agents/', {
+            return fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/agents/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
