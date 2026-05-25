@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Navbar from '../components/Navbar';
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}`;
 
 export default function WatchdogSettings() {
     const mainRef = useRef(null);
@@ -201,11 +201,10 @@ export default function WatchdogSettings() {
                                 <div
                                     key={item.id}
                                     onClick={() => setActiveTab(item.id)}
-                                    className={`flex items-center gap-2 px-4 py-2 text-sm rounded-md cursor-pointer transition ${
-                                        activeTab === item.id
+                                    className={`flex items-center gap-2 px-4 py-2 text-sm rounded-md cursor-pointer transition ${activeTab === item.id
                                             ? 'font-semibold bg-gray-100 dark:bg-[#161b22] text-gray-900 dark:text-white border-l-[3px] border-[#fd8c73] rounded-l-none'
                                             : 'text-gray-700 dark:text-[#8b949e] hover:bg-gray-50 dark:hover:bg-[#161b22]/50'
-                                    }`}
+                                        }`}
                                 >
                                     <i data-lucide={item.icon} className="w-4 h-4 text-gray-500 dark:text-[#8b949e]"></i>
                                     {item.label}

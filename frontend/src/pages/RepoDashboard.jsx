@@ -26,7 +26,7 @@ export default function RepoDashboard() {
     // Fetch commits for a specific branch & selected agent
     const { data: commitsResponse, isLoading: commitsLoading } = useQuery({
         queryKey: ['commits', 'branch-1', selectedAgent.id],
-        queryFn: () => fetch(`http://localhost:8000/commits/branch/1?agent_id=${selectedAgent.id}`, {
+        queryFn: () => fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/commits/branch/1?agent_id=${selectedAgent.id}`, {
             headers: {
                 'Authorization': 'Bearer mock-secure-api-key'
             }
@@ -72,7 +72,7 @@ export default function RepoDashboard() {
     // Refetch data instead of simulating hardcoded thoughts
     const handleRefresh = () => {
         setIsSimulating(true);
-        fetch(`http://localhost:8000/commits/branch/1?agent_id=${selectedAgent.id}`, {
+        fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/commits/branch/1?agent_id=${selectedAgent.id}`, {
             headers: { 'Authorization': 'Bearer mock-secure-api-key' }
         })
             .then(res => res.json())

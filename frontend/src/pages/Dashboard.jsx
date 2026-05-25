@@ -8,16 +8,16 @@ import Navbar from '../components/Navbar';
 export default function Dashboard() {
     const mainRef = useRef();
     const staggerItemsRef = useRef([]);
-    
+
     // Fetch real-time data
     const { data: metricsData, isLoading: metricsLoading } = useQuery({
         queryKey: ['metrics'],
-        queryFn: () => fetch('http://localhost:8000/metrics').then(res => res.json())
+        queryFn: () => fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/metrics`).then(res => res.json())
     });
 
     const { data: agentsData, isLoading: agentsLoading } = useQuery({
         queryKey: ['agents'],
-        queryFn: () => fetch('http://localhost:8000/agents').then(res => res.json())
+        queryFn: () => fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/agents`).then(res => res.json())
     });
 
     const metrics = metricsData?.data || {};
@@ -30,21 +30,21 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
-        
-        
-        
+
+
+
         if (window.lucide) {
             window.lucide.createIcons();
         }
     }, []);
 
     useGSAP(() => {
-        gsap.fromTo(staggerItemsRef.current, 
+        gsap.fromTo(staggerItemsRef.current,
             { opacity: 0, y: 15 },
-            { 
-                opacity: 1, 
-                y: 0, 
-                stagger: 0.04, 
+            {
+                opacity: 1,
+                y: 0,
+                stagger: 0.04,
                 duration: 0.4,
                 ease: "power2.out",
                 delay: 0.05
@@ -60,7 +60,7 @@ export default function Dashboard() {
             {/* Main Content Container */}
             <main className="flex-grow w-full max-w-[1280px] mx-auto px-4 md:px-8 py-8">
                 <div className="flex flex-col md:flex-row gap-8">
-                    
+
                     {/* Left Sidebar: Cognitive Repos (Agents) */}
                     <div className="w-full md:w-1/4 flex flex-col gap-6">
                         {/* User Context */}
@@ -81,19 +81,19 @@ export default function Dashboard() {
                                     <i data-lucide="book-plus" className="w-3.5 h-3.5"></i> New
                                 </Link>
                             </div>
-                            
+
                             <div className="relative mb-4">
                                 <input type="text" placeholder="Find an agent..." className="w-full bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-blue-600 dark:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition-all text-gray-900 dark:text-[#c9d1d9] placeholder-gray-400 dark:placeholder-[#8b949e]" />
                             </div>
 
                             <ul className="space-y-3.5">
                                 {agentsLoading ? (
-                                     <li className="text-xs text-gray-500 dark:text-[#8b949e]">Loading cognitive repos...</li>
+                                    <li className="text-xs text-gray-500 dark:text-[#8b949e]">Loading cognitive repos...</li>
                                 ) : agents.map(agent => {
                                     // Determine icon based on agent type
                                     let iconName = "book";
                                     let typeColorClass = "text-gray-500 bg-gray-100 dark:bg-gray-800 dark:text-gray-400";
-                                    
+
                                     if (agent.type === "IDE Assistant") {
                                         iconName = "sparkles";
                                         typeColorClass = "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30 dark:text-indigo-400";
@@ -128,7 +128,7 @@ export default function Dashboard() {
                                                     </p>
                                                 )}
                                                 <span className="text-xs text-gray-500 dark:text-[#8b949e] flex items-center gap-1 mt-1">
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${agent.status === 'Active' ? 'bg-[#3fb950]' : 'bg-[#8b949e]'}`}></div> 
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${agent.status === 'Active' ? 'bg-[#3fb950]' : 'bg-[#8b949e]'}`}></div>
                                                     {agent.status} • {agent.last_active && `${agent.last_active}`}
                                                 </span>
                                             </div>
@@ -138,9 +138,9 @@ export default function Dashboard() {
                             </ul>
                             <a href="#!" className="text-xs text-gray-500 dark:text-[#8b949e] hover:text-blue-600 dark:text-[#58a6ff] hover:underline mt-4 block transition">Show more...</a>
                         </div>
-                        
+
                         <hr className="border-gray-200 dark:border-[#30363d]" />
-                        
+
                         <div ref={addToStagger}>
                             <h3 className="font-semibold text-sm text-gray-900 dark:text-[#c9d1d9] mb-3">Recent activity</h3>
                             <div className="text-sm text-gray-500 dark:text-[#8b949e] border border-dashed border-gray-200 dark:border-[#30363d] rounded-md p-4 text-center">
@@ -160,7 +160,7 @@ export default function Dashboard() {
                         </div>
 
                         <div className="flex flex-col gap-6">
-                            
+
                             {/* Event 1: Branch Merge */}
                             <div ref={addToStagger} className="flex gap-4">
                                 <div className="mt-1 flex-shrink-0">
@@ -221,13 +221,13 @@ export default function Dashboard() {
 
                     {/* Right Sidebar: System Health & Explore */}
                     <div className="w-full md:w-1/4 flex flex-col gap-6">
-                        
+
                         {/* Global Health Stats */}
                         <div ref={addToStagger} className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-md p-4">
                             <h3 className="font-semibold text-sm text-gray-900 dark:text-[#c9d1d9] mb-4 flex items-center gap-2">
                                 <i data-lucide="activity" className="w-4 h-4 text-green-600 dark:text-[#3fb950]"></i> System Health
                             </h3>
-                            
+
                             <div className="space-y-4">
                                 {metricsLoading ? (
                                     <div className="text-xs text-gray-500 dark:text-[#8b949e]">Loading metrics...</div>
@@ -242,7 +242,7 @@ export default function Dashboard() {
                                                 <div className="bg-[#3fb950] h-1.5 rounded-full" style={{ width: `${metrics.memory_integrity || 0}%` }}></div>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded p-2 text-center">
                                                 <div className="text-xl font-light text-gray-900 dark:text-[#c9d1d9]">{metrics.active_agents || 0}</div>
@@ -253,7 +253,7 @@ export default function Dashboard() {
                                                 <div className="text-[10px] text-gray-500 dark:text-[#8b949e] mt-1">Rollbacks</div>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="border-t border-gray-200 dark:border-[#30363d] pt-3 mt-3">
                                             <div className="flex justify-between items-center text-sm">
                                                 <span className="text-gray-500 dark:text-[#8b949e] flex items-center gap-1.5"><i data-lucide="zap" className="w-3.5 h-3.5 text-[#e3b341]"></i> API Tokens</span>

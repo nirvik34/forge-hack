@@ -5,7 +5,7 @@ import { useGSAP } from '@gsap/react';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '../components/Navbar';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}`;
 
 // Seed notification data (realistic notifications for a CognitionVCS platform)
 const SEED_NOTIFICATIONS = [
@@ -293,11 +293,10 @@ export default function Notifications() {
                             <div
                                 key={view.id}
                                 onClick={() => { setActiveView(view.id); setFilterText(''); }}
-                                className={`flex items-center justify-between px-3 py-1.5 text-sm rounded-md cursor-pointer transition group ${
-                                    activeView === view.id
+                                className={`flex items-center justify-between px-3 py-1.5 text-sm rounded-md cursor-pointer transition group ${activeView === view.id
                                         ? 'font-semibold bg-gray-200 dark:bg-[#30363d] text-gray-900 dark:text-white'
                                         : 'text-gray-700 dark:text-[#8b949e] hover:bg-gray-100 dark:hover:bg-[#161b22]'
-                                }`}
+                                    }`}
                             >
                                 <div className="flex items-center gap-2">
                                     <i data-lucide={view.icon} className={`w-4 h-4 ${activeView === view.id ? 'text-[#0969da] dark:text-[#58a6ff]' : 'text-gray-500 dark:text-[#8b949e]'} group-hover:text-[#0969da] dark:group-hover:text-[#58a6ff] transition-colors`}></i>
@@ -473,11 +472,10 @@ export default function Notifications() {
                                                     </button>
                                                     <button
                                                         onClick={() => toggleSaved(notif.id)}
-                                                        className={`p-1.5 rounded transition ${
-                                                            notif.saved
+                                                        className={`p-1.5 rounded transition ${notif.saved
                                                                 ? 'text-blue-600 dark:text-[#58a6ff] bg-blue-50 dark:bg-blue-900/30'
                                                                 : 'text-gray-400 dark:text-[#8b949e] hover:text-blue-600 dark:hover:text-[#58a6ff] hover:bg-blue-50 dark:hover:bg-blue-900/30'
-                                                        }`}
+                                                            }`}
                                                         title="Save"
                                                     >
                                                         <i data-lucide="bookmark" className="w-4 h-4"></i>

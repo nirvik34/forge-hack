@@ -55,7 +55,7 @@ export default function Settings() {
     const [showGemini, setShowGemini] = useState(false);
     const [showOpenai, setShowOpenai] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-    
+
     // Generated PAT details
     const [generatedToken, setGeneratedToken] = useState("");
     const [showTokenBox, setShowTokenBox] = useState(false);
@@ -65,7 +65,7 @@ export default function Settings() {
 
     // Fetch initial settings from backend
     useEffect(() => {
-        axios.get('http://localhost:8000/settings')
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/settings`)
             .then(res => {
                 if (res.data && res.data.status === "success") {
                     const data = res.data.data;
@@ -100,12 +100,12 @@ export default function Settings() {
     };
 
     useGSAP(() => {
-        gsap.fromTo(staggerItemsRef.current, 
+        gsap.fromTo(staggerItemsRef.current,
             { opacity: 0, y: 15 },
-            { 
-                opacity: 1, 
-                y: 0, 
-                stagger: 0.04, 
+            {
+                opacity: 1,
+                y: 0,
+                stagger: 0.04,
                 duration: 0.4,
                 ease: "power2.out",
                 delay: 0.05
@@ -190,7 +190,7 @@ export default function Settings() {
             triggerToast("Please provide a token description first.", "red");
             return;
         }
-        const tokenString = "cvc_pat_" + Array.from({length: 32}, () => Math.floor(Math.random()*16).toString(16)).join('');
+        const tokenString = "cvc_pat_" + Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
         const newToken = {
             description: tokenDescInput,
             token: tokenString,
@@ -263,7 +263,7 @@ export default function Settings() {
 
             {/* Main Settings Container (Master-Detail Structure) */}
             <main className="flex-grow w-full max-w-[1024px] mx-auto px-4 md:px-8 py-8 flex flex-col md:flex-row gap-8">
-                
+
                 {/* Sidebar Navigation */}
                 <aside className="w-full md:w-1/4 flex flex-col gap-1">
                     <div className="mb-4 px-4 flex items-center gap-3">
@@ -295,12 +295,12 @@ export default function Settings() {
 
                 {/* Right Content Section */}
                 <section className="w-full md:w-3/4 pb-12">
-                    
+
                     {/* VIEW 1: Public Profile */}
                     {activeTab === 'profile' && (
                         <div className="animate-fade-in">
                             <h2 className="text-2xl font-normal text-gray-900 dark:text-white mb-2 border-b border-gray-200 dark:border-[#30363d] pb-2">Public profile</h2>
-                            
+
                             <div className="flex flex-col-reverse md:flex-row gap-8 mt-6">
                                 <div className="w-full md:w-2/3 flex flex-col gap-5">
                                     <div>
@@ -308,7 +308,7 @@ export default function Settings() {
                                         <input type="text" value={nameInput} onChange={(e) => setNameInput(e.target.value)} className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-md px-3 py-1.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-600 dark:focus:border-[#58a6ff] w-full" />
                                         <p className="text-xs text-gray-500 dark:text-[#8b949e] mt-1">This will display to your team and collaborators during active agent merges.</p>
                                     </div>
-                                    
+
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-900 dark:text-[#c9d1d9] mb-1">Public Email</label>
                                         <select value={emailInput} onChange={(e) => setEmailInput(e.target.value)} className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-md px-3 py-1.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-600 dark:focus:border-[#58a6ff] w-full cursor-pointer">
@@ -368,7 +368,7 @@ export default function Settings() {
                     {activeTab === 'account' && (
                         <div className="animate-fade-in">
                             <h2 className="text-2xl font-normal text-gray-900 dark:text-white mb-2 border-b border-gray-200 dark:border-[#30363d] pb-2">Account Settings</h2>
-                            
+
                             <div className="flex flex-col gap-6 mt-6">
                                 <div>
                                     <h3 className="text-md font-bold text-gray-900 dark:text-white mb-2">Change Username</h3>
@@ -411,7 +411,7 @@ export default function Settings() {
                             <div className="mb-8">
                                 <h3 className="text-md font-bold text-gray-900 dark:text-white mb-3">Language Model API Connections</h3>
                                 <div className="border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden divide-y divide-gray-200 dark:divide-[#30363d]">
-                                    
+
                                     {/* Gemini API Connection */}
                                     <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50 dark:bg-[#161b22]/30">
                                         <div className="flex items-center gap-3">
@@ -501,13 +501,13 @@ export default function Settings() {
                     {activeTab === 'security' && (
                         <div className="animate-fade-in">
                             <h2 className="text-2xl font-normal text-gray-900 dark:text-white mb-2 border-b border-gray-200 dark:border-[#30363d] pb-2">Security & Access</h2>
-                            
+
                             <div className="flex flex-col gap-6 mt-6">
                                 {/* CLI Tokens */}
                                 <div>
                                     <h3 className="text-md font-bold text-gray-900 dark:text-white mb-1">CLI Personal Access Tokens</h3>
                                     <p className="text-sm text-gray-600 dark:text-[#8b949e] mb-4">Generate and configure secure credentials to authenticate the <strong className="font-mono text-xs">cvc</strong> command-line terminal tool with your remote repositories.</p>
-                                    
+
                                     <div className="bg-slate-50 dark:bg-[#161b22]/30 border border-gray-200 dark:border-[#30363d] rounded-lg p-4 mb-4">
                                         <h4 className="text-xs font-semibold text-gray-500 dark:text-[#8b949e] uppercase tracking-wide mb-3">Generate New Token</h4>
                                         <div className="flex flex-col sm:flex-row gap-2">
@@ -583,7 +583,7 @@ export default function Settings() {
                     {activeTab === 'billing' && (
                         <div className="animate-fade-in">
                             <h2 className="text-2xl font-normal text-gray-900 dark:text-white mb-2 border-b border-gray-200 dark:border-[#30363d] pb-2">Billing & Plans</h2>
-                            
+
                             <div className="flex flex-col gap-6 mt-6">
                                 {/* Active Subscription Summary */}
                                 <div className="border border-gray-200 dark:border-[#30363d] rounded-lg p-5 bg-slate-50 dark:bg-[#161b22]/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
