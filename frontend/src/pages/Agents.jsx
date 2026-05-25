@@ -61,7 +61,7 @@ export default function Agents() {
     // Fetch agents from backend
     const { data: agentsData, isLoading: agentsLoading } = useQuery({
         queryKey: ['agents'],
-        queryFn: () => fetch('http://localhost:8000/agents').then(res => res.json())
+        queryFn: () => fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/agents`).then(res => res.json())
     });
 
     const rawAgents = agentsData?.data || [];
